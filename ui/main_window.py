@@ -9,6 +9,8 @@ from utils.camera import get_available_cameras
 from ui.active_frame import ActiveFrame
 
 
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -18,10 +20,10 @@ class MainWindow(QMainWindow):
         self.menu_stat = [self.ui.Status_1, self.ui.Status_2, self.ui.Status_3, self.ui.Status_4]
 
         # Переменные для хранения текущих настроек
-        self.camera_index = None
-        self.model_quality = None
-        self.frame_show = None
-        self.bbox_show = None
+        self.camera_index = 1
+        self.model_quality = 1
+        self.frame_show = True
+        self.bbox_show = True
 
         # Флаг для отслеживания состояния окна
         self.is_frame_active = False
@@ -140,7 +142,7 @@ class MainWindow(QMainWindow):
             if self.frame_app:
                 self.frame_app.close()  # Закрыть предыдущее окно, если оно существует
 
-            #print(f"{self.camera_index, self.model_quality, self.frame_show, self.bbox_show}")
+            print(f"{self.camera_index, self.model_quality, self.frame_show, self.bbox_show}")
 
             # Создание нового окна с текущими настройками
             self.frame_app = ActiveFrame(
