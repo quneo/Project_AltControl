@@ -1,4 +1,5 @@
 import numpy as np
+from settings import *
 
 def bbox_cords(points):
     points = np.array(points)  # Преобразуем список в массив numpy
@@ -23,3 +24,17 @@ def bbox_cords(points):
     height += 2 * padding_y  # Увеличиваем высоту на 6% сверху и снизу
 
     return int(x_min), int(y_min), int(width), int(height)
+
+def fingers_bias(fingers):
+    center_x, center_y = int(np.mean(fingers[:, 0])), int(np.mean(fingers[:, 1]))
+    fingers_biased = fingers.copy()
+
+    def calculate_bias(x, y):
+        softing = 1
+        return np.array([x - WIDTH // 2, y - HEIGHT // 2]) // softing
+
+    bias = calculate_bias(center_x, center_y)
+    fingers_biased[:, 0] += bias[0]
+    fingers_biased[:, 1] += bias[1]
+
+    return fingers_biased

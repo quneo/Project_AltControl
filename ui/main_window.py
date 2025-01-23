@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
 
         # Переменные для хранения текущих настроек
         self.camera_index = 1
-        self.model_quality = 1
+        self.model_quality = 1    # 0 - high, 1 - amazing
         self.frame_show = True
         self.bbox_show = True
 
