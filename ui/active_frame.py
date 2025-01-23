@@ -40,6 +40,11 @@ class ActiveFrame(QMainWindow):
         self.setWindowFlag(Qt.WindowType.WindowDoesNotAcceptFocus, True)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
 
+    def update_frame_pen(self):
+        pen_width = int(np.log(self.Frame_color) * np.sin(self.Frame_color / 15) ** 2 + self.Frame_color / 50)
+        self.pen_frame.setColor(QColor(0, self.Frame_color, 0))
+        self.pen_frame.setWidth(pen_width)
+
     def init_pens_and_brushes(self):
         """Инициализация кистей и пера, которые будут использоваться в отрисовке."""
         # Перо для рамки
@@ -76,8 +81,7 @@ class ActiveFrame(QMainWindow):
     def on_gesture_detected(self, result):
         self.finger_points = result[1]
         self.cur_gesture = result[0]
-        #print(self.finger_points, self.cur_gesture)
-
+        # print(self.finger_points, self.cur_gesture)
 
     def draw_frame(self, painter):
         """Рисует прямоугольную рамку на экране с плавной настройкой цвета и толщины линии."""
@@ -118,6 +122,7 @@ class ActiveFrame(QMainWindow):
         painter = QPainter(self)
 
         if self.bbox_show:
+            self.update_frame_pen()
             self.draw_frame(painter)
 
         if self.finger_points is not None:
