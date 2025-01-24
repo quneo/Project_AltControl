@@ -4,6 +4,8 @@ from PyQt6.QtGui import QPainter, QColor, QPen
 from PyQt6.QtCore import Qt, QPoint, QRect, QTimer
 
 from colors import Frame_color, Hand_landmark_color
+from controllers.activity_controller import ActivityController
+from controllers.activity_performer import ActivityPerformer
 from gestures.gesture_recognizer import GestureRecognizer
 from utils.constants import connections
 from utils.functions import bbox_cords
@@ -75,13 +77,21 @@ class ActiveFrame(QMainWindow):
         self.gesture_thread.gesture_signal.connect(self.on_gesture_detected)
         self.gesture_thread.start()
 
+        self.activity_controller = ActivityController()
+        self.activity_performer = ActivityPerformer()
+
+        self.gesture_thread.gesture_signal.connect(self.activity_controller.on_gesture_detected)
+        self.activity_controller.action_signal.connect(self.activity_performer.set_action)
+
+        self.activity_controller.start()
+        self.activity_performer.start()
+
     def update_tracking(self):
         self.update()
 
     def on_gesture_detected(self, result):
         self.finger_points = result[1]
         self.cur_gesture = result[0]
-        # print(self.finger_points, self.cur_gesture)
 
     def draw_frame(self, painter):
         """Рисует прямоугольную рамку на экране с плавной настройкой цвета и толщины линии."""
@@ -111,7 +121,6 @@ class ActiveFrame(QMainWindow):
         painter.setBrush(Qt.GlobalColor.transparent)
         bbox = bbox_cords(points)
         painter.drawRect(QRect(bbox[0], bbox[1], bbox[2], bbox[3]))
-        print(bbox)
         text = gestures[self.cur_gesture]  # Текст, который нужно отобразить
         font = painter.font()  # Получаем текущий шрифт
         font.setPointSize(20)  # Устанавливаем размер шрифта
