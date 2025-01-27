@@ -1,9 +1,7 @@
-import time
-import pyautogui
 from PyQt6 import QtCore
-from PyQt6.QtCore import QTimer
 
-from utils.unificate_cords import return_normalized_points, dist, conversion_to_degrees, calculate_absangle
+from utils.functions import scroll_angle, scroll_param, is_close
+from utils.unificate_cords import return_normalized_points
 
 
 class ActivityController(QtCore.QThread):
@@ -18,26 +16,67 @@ class ActivityController(QtCore.QThread):
         self.prev_gesture = None
         self.prev_points = None
 
+        self.lmb_pressed = False
+
     def on_gesture_detected(self, result):
         self.prev_gesture = self.current_gesture
         self.prev_points = self.current_points
 
         self.current_gesture = result[0]
         self.current_points = result[1]
+        if self.current_points is not None:
+            self.current_points_normalized = return_normalized_points(self.current_points)
 
         self.process_gesture()
 
     def process_gesture(self):
         """Обработка жеста и генерация действия."""
-
         action = {}
+
+        # 1. Одиночный клик
         if self.current_gesture == 0 and self.prev_gesture == 1:
             action = {'type': 'click', 'button': 'left', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
-            print("Click")
 
-        else:
-            pass
+        # 2. Двойной клик
+        elif self.current_gesture == 2 and self.prev_gesture == 3:
+            action = {'type': 'double_click', 'button': 'left', 'x': self.current_points[8][0],
+                      'y': self.current_points[8][1]}
 
+        # 3. Клик ПКМ
+        elif self.current_gesture == 7 and self.prev_gesture == 1:
+            action = {'type': 'click', 'button': 'right', 'x': self.current_points[8][0],
+                      'y': self.current_points[8][1]}
+
+        # 4. Зажать ЛКМ
+        elif self.current_gesture == 4 and not self.lmb_pressed:
+            if is_close(self.current_points_normalized[8], self.current_points_normalized[4]) and not self.lmb_pressed:
+                print("FFFFFFFFF")
+                self.lmb_pressed = True
+                action = {'type': 'lmb_down', 'button': 'left', 'x': self.current_points[8][0],
+                          'y': self.current_points[8][1]}
+
+        # 5. Продолжить выделение
+        elif self.current_gesture == 4 and self.prev_gesture == 4 and self.lmb_pressed:
+            action = {'type': 'follow', 'button': 'left', 'x': self.current_points[8][0],
+                      'y': self.current_points[8][1]}
+
+        # 6. Отпустить ЛКМ
+        elif self.current_gesture != 4 and self.prev_gesture == 4 and self.lmb_pressed:
+            self.lmb_pressed = False
+            action = {'type': 'lmb_up', 'button': 'left', 'x': self.current_points[8][0],
+                      'y': self.current_points[8][1]}
+
+        # 7. Скролл
+        elif self.current_gesture == 13 and self.prev_gesture == 13:
+            angle = scroll_angle(self.current_points)
+            action = {'type': 'scroll', 'scroll_param': scroll_param(angle), 'x': self.current_points[8][0],
+                      'y': self.current_points[8][1]}
+
+        # 8. Закрыть окно
+        elif self.current_gesture == 6 and self.prev_gesture == 5:
+            action = {'type': 'close_window', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
+
+        # Отправка действия на выполнение
         if action:
             self.action_signal.emit(action)
 

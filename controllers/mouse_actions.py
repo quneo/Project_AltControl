@@ -9,7 +9,7 @@ class MouseActions:
         pyautogui.moveTo(x, y)
 
     @staticmethod
-    def click(x, y, button='left'):
+    def click(x, y, button):
         pyautogui.moveTo(x, y)
         pyautogui.click(button=button)
 

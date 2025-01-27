@@ -1,5 +1,7 @@
 import numpy as np
 from settings import *
+from utils.unificate_cords import conversion_to_degrees, dist
+
 
 def bbox_cords(points):
     points = np.array(points)  # Преобразуем список в массив numpy
@@ -25,6 +27,7 @@ def bbox_cords(points):
 
     return int(x_min), int(y_min), int(width), int(height)
 
+
 def fingers_bias(fingers):
     center_x, center_y = int(np.mean(fingers[:, 0])), int(np.mean(fingers[:, 1]))
     fingers_biased = fingers.copy()
@@ -38,3 +41,34 @@ def fingers_bias(fingers):
     fingers_biased[:, 1] += bias[1]
 
     return fingers_biased
+
+
+def scroll_angle(points):
+    # Координаты точек 5 и 8
+    x5, y5 = points[5]
+    x8, y8 = points[8]
+
+    # Угол в радианах
+    angle = np.arctan2(y8 - y5, x8 - x5)
+
+    if angle < 0:
+        angle += 2 * np.pi
+
+    return np.degrees(angle) - 180
+
+
+def scroll_param(degree):
+    a, b = 25, 33
+    c = 20
+
+    if degree > a:
+        return int(c * np.log(degree - a + 1))
+    elif degree < -b:
+        return int(-c * np.log(-degree - b + 1))
+    else:
+        return 0
+
+
+def is_close(point1, point2, threshold=0.45):
+    """Проверяет, находятся ли две точки ближе заданного расстояния."""
+    return dist(point1[0], point1[1], point2[0], point2[1]) <= threshold
