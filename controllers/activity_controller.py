@@ -17,6 +17,7 @@ class ActivityController(QtCore.QThread):
         self.prev_points = None
 
         self.lmb_pressed = False
+        self.window_grabbed = False
 
     def on_gesture_detected(self, result):
         self.prev_gesture = self.current_gesture
@@ -50,7 +51,6 @@ class ActivityController(QtCore.QThread):
         # 4. Зажать ЛКМ
         elif self.current_gesture == 4 and not self.lmb_pressed:
             if is_close(self.current_points_normalized[8], self.current_points_normalized[4]) and not self.lmb_pressed:
-                print("FFFFFFFFF")
                 self.lmb_pressed = True
                 action = {'type': 'lmb_down', 'button': 'left', 'x': self.current_points[8][0],
                           'y': self.current_points[8][1]}
@@ -75,6 +75,25 @@ class ActivityController(QtCore.QThread):
         # 8. Закрыть окно
         elif self.current_gesture == 6 and self.prev_gesture == 5:
             action = {'type': 'close_window', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
+
+        # 9. Захват окна
+        elif self.current_gesture == 5 and self.prev_gesture != 5 and self.window_grabbed == False:
+            action = {'type': 'grab_window', 'x': self.current_points[0][0], 'y': self.current_points[0][1], 'dif_x': 0, 'dif_y': 0}
+            print('52')
+            self.window_grabbed = True
+
+        # 10. Перемещение окна
+        elif self.current_gesture == 5 and self.prev_gesture == 5 and self.window_grabbed == True:
+            dif_x = int(self.current_points[0][0] - self.prev_points[0][0])
+            dif_y = int(self.current_points[0][1] - self.prev_points[0][1])
+            action = {'type': 'grab_window', 'x': self.current_points[0][0], 'y': self.current_points[0][1], 'dif_x': dif_x, 'dif_y': dif_y}
+
+        # 11. Отпустить окно
+        elif self.current_gesture != 5 and self.window_grabbed == True:
+            self.window_grabbed = False
+
+        # 12
+        print("AXAXXAX")
 
         # Отправка действия на выполнение
         if action:

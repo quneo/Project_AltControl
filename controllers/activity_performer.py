@@ -55,4 +55,8 @@ class ActivityPerformer(QtCore.QThread):
             self.window_actions.close_window(action.get('x'), action.get('y'))
             self.current_action = None
 
+        elif action_type == 'grab_window':
+            self.window_actions.move(action.get('x'), action.get('y'), action.get('dif_x'), action.get('dif_y'))
+            self.current_action = None
+
 
