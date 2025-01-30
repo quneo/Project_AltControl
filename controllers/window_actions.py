@@ -7,7 +7,6 @@ class WindowActions:
         windows = gw.getWindowsAt(x, y)
         if not windows:
             return None
-        print(windows)
         window = windows[1]
 
         if not window.title.strip():

@@ -7,6 +7,7 @@ import cv2 as cv
 from models.models import *
 from utils.functions import fingers_bias
 from utils.unificate_cords import classification
+from settings import *
 
 
 class GestureRecognizer(QThread):
@@ -25,6 +26,8 @@ class GestureRecognizer(QThread):
         self.localizer_hands = localizer_model()
         self.classificator = self._initialize_classificator(model_quality)
 
+        self.history = []
+
     @staticmethod
     def _initialize_classificator(model_quality):
         """Инициализирует классификатор в зависимости от качества модели."""
@@ -42,6 +45,16 @@ class GestureRecognizer(QThread):
         if confidence <= 0.6:
             cur_gesture = 15  # Неопределенный жест, если уверенность низкая
         return cur_gesture, confidence
+
+    def moving_average(self, points):
+        self.history.append(points)
+        length = len(self.history)
+        if length > MAW:
+            self.history = self.history[-MAW:]
+
+        av_points = sum(self.history) / length
+        return av_points.astype(int)
+
 
     def process_frame(self, frame):
         """Обрабатывает один кадр для извлечения жестов и ключевых точек."""
@@ -63,8 +76,11 @@ class GestureRecognizer(QThread):
                 # Применение коррекции
                 points = fingers_bias(points)
 
+                # Применение скользящего среднего
+                points_prepared = self.moving_average(points)
+
                 # Передача жеста и точек через сигнал
-                self.gesture_signal.emit((gesture, points))
+                self.gesture_signal.emit((gesture, points_prepared))
         else:
             # Передача сигнала для неопределенного жеста
             self.gesture_signal.emit((15, None))

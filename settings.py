@@ -3,3 +3,5 @@ HEIGHT = 1080  # 800
 
 MAXNUMHANDS = 1
 BBOX_MULTIPLIER = 1.1
+
+MAW = 5 # Moving Average Window

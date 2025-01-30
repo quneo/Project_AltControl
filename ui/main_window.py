@@ -142,8 +142,6 @@ class MainWindow(QMainWindow):
             if self.frame_app:
                 self.frame_app.close()  # Закрыть предыдущее окно, если оно существует
 
-            print(f"{self.camera_index, self.model_quality, self.frame_show, self.bbox_show}")
-
             # Создание нового окна с текущими настройками
             self.frame_app = ActiveFrame(
                 camera_index=self.camera_index,
@@ -158,7 +156,6 @@ class MainWindow(QMainWindow):
         """Обработчик нажатия кнопки мыши (для перемещения окна)."""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             # Проверяем, что клик был в верхней части окна
-            #print(event.pos().y(), self.drag_area_height)
             if event.pos().y() < self.drag_area_height:
                 self.old_position = event.globalPosition().toPoint()
 

@@ -78,7 +78,6 @@ class ActivityController(QtCore.QThread):
         # 9. Захват окна
         elif self.current_gesture == 5 and self.prev_gesture != 5 and self.window_grabbed == False:
             action = {'type': 'grab_window', 'x': self.current_points[0][0], 'y': self.current_points[0][1], 'dif_x': 0, 'dif_y': 0}
-            print('52')
             self.window_grabbed = True
 
         # 10. Перемещение окна
