@@ -27,8 +27,7 @@ class ActivityController(QtCore.QThread):
         self.current_points = result[1]
         if self.current_points is not None:
             self.current_points_normalized = return_normalized_points(self.current_points)
-
-        self.process_gesture()
+            self.process_gesture()
 
     def process_gesture(self):
         """Обработка жеста и генерация действия."""
@@ -92,8 +91,6 @@ class ActivityController(QtCore.QThread):
         elif self.current_gesture != 5 and self.window_grabbed == True:
             self.window_grabbed = False
 
-        # 12
-        print("AXAXXAX")
 
         # Отправка действия на выполнение
         if action:

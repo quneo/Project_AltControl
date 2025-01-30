@@ -101,6 +101,7 @@ class ActiveFrame(QMainWindow):
 
     def draw_hand_landmarks(self, painter, points):
         """Отрисовка ключевых точек руки и линий соединений между ними."""
+        print(points)
         painter.setPen(self.pen_landmarks)
         painter.setBrush(self.brush_landmarks)
 
