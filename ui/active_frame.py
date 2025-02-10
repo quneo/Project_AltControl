@@ -10,6 +10,7 @@ from gestures.gesture_recognizer import GestureRecognizer
 from utils.constants import connections
 from utils.functions import bbox_cords
 from gestures.gesture_list import gestures
+from .draw_palm import draw_hand_landmarks, draw_hand_polygon, draw_hand_triangles
 
 
 class ActiveFrame(QMainWindow):
@@ -99,22 +100,6 @@ class ActiveFrame(QMainWindow):
         painter.setBrush(Qt.GlobalColor.transparent)
         painter.drawRect(QRect(3, 3, self.WIDTH - 5, self.HEIGHT - 50))
 
-    def draw_hand_landmarks(self, painter, points):
-        """Отрисовка ключевых точек руки и линий соединений между ними."""
-        painter.setPen(self.pen_landmarks)
-        painter.setBrush(self.brush_landmarks)
-
-        for point in points:
-            painter.drawEllipse(QPoint(point[0], point[1]), 7, 7)  # Радиус эллипсов = 7
-
-        painter.setPen(self.pen_lines)
-        # Рисуем линии между точками (если есть соединения)
-        for connection in connections:
-            painter.drawLine(
-                QPoint(self.finger_points[connection[0]][0], self.finger_points[connection[0]][1]),
-                QPoint(self.finger_points[connection[1]][0], self.finger_points[connection[1]][1])
-            )
-
     def draw_bbox(self, painter, points):
         """Отрисовка ограничивающей рамки вокруг руки."""
         painter.setPen(self.bbox_lines)
@@ -135,7 +120,8 @@ class ActiveFrame(QMainWindow):
             self.draw_frame(painter)
 
         if self.finger_points is not None:
-            self.draw_hand_landmarks(painter, self.finger_points)
+            draw_hand_triangles(painter, self.finger_points, self.pen_landmarks,
+                                self.brush_landmarks, self.pen_lines)
             if self.bbox_show:
                 self.draw_bbox(painter, self.finger_points)
             if self.Frame_color <= 200:
