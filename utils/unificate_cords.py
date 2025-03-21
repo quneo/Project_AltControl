@@ -58,6 +58,28 @@ def unificate_hand(fingers_cords: np.array):    # Отзеркалена, пов
 
     return fingers_rot.astype(int), alpha
 
+def unificate_hand2(fingers_cords: np.array):    # Отзеркалена, повернута.
+    mirror_flag = define_orientation(fingers_cords)  # Проверяем направленность ладони
+    if mirror_flag == -1:
+        fingers_cords = mirror_hand(fingers_cords)  # При необходимости отражаем координаты кисти
+
+    alpha = calculate_angle(fingers_cords)  # Вычисляем угол наклона ладони
+
+    center_x, center_y = fingers_cords[0]  # Сохраняем точку 0
+    # Для корректного наклона руки относительно точки 0 нереносим центр С.К. в точку 0
+    fingers_cords_transfered = transfer_fingers(fingers_cords, fingers_cords[0])
+
+    # Применяем оператор поворота
+    rotation_matrix = np.array([[np.cos(-alpha), -np.sin(-alpha)],
+                                [np.sin(-alpha), np.cos(-alpha)]])
+
+    fingers_rot = np.dot(fingers_cords_transfered, rotation_matrix)
+
+    # Возвращаем центр С.К. назад
+    fingers_rot += np.array([center_x, center_y])
+
+    return fingers_rot.astype(int)
+
 
 def calculate_angle(fingers_cords: np.array) -> float:  # Вычисление угла наклона ладони
     delta = fingers_cords[13] - fingers_cords[9]  # Координаты разности

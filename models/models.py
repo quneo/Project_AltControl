@@ -5,9 +5,15 @@ import mediapipe as mp
 def tiny_model():
     return models.load_model('models/tiny_model.h5')
 
-
 def amazing_model():
     return models.load_model('models/amazing_model.h5')
+
+def static_gesture_model():
+    return models.load_model("models/static_model.keras")
+
+def dynamic_gesture_model():
+    return models.load_model("models/dynamic_model.keras")
+
 
 
 def localizer_model():

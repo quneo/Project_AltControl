@@ -9,8 +9,6 @@ from utils.camera import get_available_cameras
 from ui.active_frame import ActiveFrame
 
 
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

@@ -3,15 +3,23 @@ from PyQt6.QtWidgets import QWidget, QMainWindow, QApplication
 from PyQt6.QtGui import QPainter, QColor, QPen
 from PyQt6.QtCore import Qt, QPoint, QRect, QThread, pyqtSignal
 import cv2 as cv
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.models import *
 from utils.functions import fingers_bias
 from utils.unificate_cords import classification
 from settings import *
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from SequenceClassifier import SequenceClassifier
+from GestureEnergyAnalyzer import GestureEnergyAnalyzer
+
 
 class GestureRecognizer(QThread):
     gesture_signal = pyqtSignal(tuple)
+    get_activity_signal = pyqtSignal(tuple)
 
     def __init__(self, screen_width, screen_height, model_quality, camera_id):
         super().__init__()
@@ -24,27 +32,42 @@ class GestureRecognizer(QThread):
         self.capture.set(cv.CAP_PROP_FRAME_HEIGHT, self.height)  # Высота кадров в видеопотоке
 
         self.localizer_hands = localizer_model()
-        self.classificator = self._initialize_classificator(model_quality)
+        self.classificator = self._initialize_classificator()
+        self.energy_analyzer = self._initialize_analyzer()
 
         self.history = []
 
     @staticmethod
-    def _initialize_classificator(model_quality):
-        """Инициализирует классификатор в зависимости от качества модели."""
-        if model_quality == 0:
-            return tiny_model()
-        elif model_quality == 1:
-            return amazing_model()
-        else:
-            raise ValueError(f"Некорректное значение model_quality: {model_quality}")
+    def _initialize_classificator():
+        """Инициализирует классификатор."""
 
-    def recogniseGesture(self, points):
-        """Распознает жест на основе ключевых точек."""
-        result = classification(points, self.classificator)
-        cur_gesture, confidence = np.argmax(result), round(np.max(result), 4)  # Результат классификации
-        if confidence <= 0.6:
-            cur_gesture = 15  # Неопределенный жест, если уверенность низкая
-        return cur_gesture, confidence
+        classificator = SequenceClassifier(
+            model_static=static_gesture_model(),
+            model_dynamic=dynamic_gesture_model() 
+        )
+
+        return classificator
+    
+    @staticmethod
+    def _initialize_analyzer():
+        # Параметры
+        history_len = 200
+        window_size = 3
+        min_frame_gap = 4
+        adaptive_threshold_window = 10
+        confirm_window = 2
+
+        # Инициализация вашего класса
+        analyzer = GestureEnergyAnalyzer(
+            window_size=window_size,
+            min_frame_gap=min_frame_gap,
+            adaptive_threshold_window=adaptive_threshold_window,
+            confirm_window=confirm_window,
+            history_len=history_len,
+            keep_last=20  # Сохраняем последние 20 значений при сбросе
+        )
+
+        return analyzer
 
     def moving_average(self, points):
         self.history.append(points)
@@ -54,7 +77,7 @@ class GestureRecognizer(QThread):
 
         av_points = sum(self.history) / length
         return av_points.astype(int)
-
+    
 
     def process_frame(self, frame):
         """Обрабатывает один кадр для извлечения жестов и ключевых точек."""
@@ -64,26 +87,32 @@ class GestureRecognizer(QThread):
 
         if result.multi_hand_landmarks:
             for hand in result.multi_hand_landmarks:
+                gesture, confidence = None, 0
                 # Извлечение ключевых точек
                 points = np.array([
                     (int(hand.landmark[i].x * self.width), int(hand.landmark[i].y * self.height))
                     for i in range(21)
                 ])
 
-                # Распознавание жеста
-                gesture, confidence = self.recogniseGesture(points)
+                seq = self.energy_analyzer.process_motion(points)
 
                 # Применение коррекции
                 points = fingers_bias(points)
 
                 # Применение скользящего среднего
                 points_prepared = self.moving_average(points)
+                
+                if seq is not None:
+                    character = self.energy_analyzer.gesture_character(len(seq))
+                    gesture, confidence = self.classificator.classify(character, seq)
+                    self.get_activity_signal.emit((gesture, points_prepared))
 
                 # Передача жеста и точек через сигнал
                 self.gesture_signal.emit((gesture, points_prepared))
         else:
             # Передача сигнала для неопределенного жеста
-            self.gesture_signal.emit((15, None))
+            self.gesture_signal.emit((26, None))
+            
 
     def run(self):
         """Основной цикл для захвата и обработки кадров."""

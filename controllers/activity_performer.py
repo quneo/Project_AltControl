@@ -4,7 +4,7 @@ from PyQt6 import QtCore
 
 from controllers.mouse_actions import MouseActions
 from controllers.window_actions import WindowActions
-
+from controllers.keyboard_actions import KeyboardActions
 
 class ActivityPerformer(QtCore.QThread):
     """Класс для выполнения действий мыши."""
@@ -12,6 +12,7 @@ class ActivityPerformer(QtCore.QThread):
         super().__init__()
         self.mouse_actions = MouseActions()
         self.window_actions = WindowActions()
+        self.keyboadr_actions = KeyboardActions()
         self.current_action = None
 
     def run(self):
@@ -51,12 +52,27 @@ class ActivityPerformer(QtCore.QThread):
             self.mouse_actions.scroll(action.get('scroll_param'))
             self.current_action = None
 
-        elif action_type == 'close_window':
-            self.window_actions.close_window(action.get('x'), action.get('y'))
+        elif action_type == 'minimize_window':
+            self.window_actions.minimize_window(action.get('x'), action.get('y'))
             self.current_action = None
 
         elif action_type == 'grab_window':
-            self.window_actions.move(action.get('x'), action.get('y'), action.get('dif_x'), action.get('dif_y'))
+            self.window_actions.smooth_move(action.get('x'), action.get('y'), action.get('dif_x'), action.get('dif_y'))
             self.current_action = None
 
+        elif action_type == 'alt+tab':
+            self.keyboadr_actions.open_alttab()
+            self.current_action = None
+
+        elif action_type == 'undo_alt+tab':
+            self.keyboadr_actions.close_alttab()
+            self.current_action = None
+
+        elif action_type == 'next_window':
+            self.keyboadr_actions.next_window()
+            self.current_action = None
+
+        elif action_type == 'minimize_all':
+            self.keyboadr_actions.minimize_all()
+            self.current_action = None
 

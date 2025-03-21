@@ -3,6 +3,31 @@ from settings import *
 from utils.unificate_cords import conversion_to_degrees, dist
 
 
+def get_bbox(points):
+    """
+    По ключевым точкам строим координаты ограничивающей рамки в формате (x_min, y_min, x_max, y_max).
+
+    :param points: Ключевые точки
+    """
+    scale_factor = 1.2    # Коэффициент растягивания рамки
+    x_min, y_min = np.min(points[:, 0]), np.min(points[:, 1])
+    x_max, y_max = np.max(points[:, 0]), np.max(points[:, 1])
+
+    width = x_max - x_min
+    height = y_max - y_min
+
+    
+    new_width = width * scale_factor
+    new_height = height * scale_factor
+
+    new_x_min = x_min - (new_width - width) / 2
+    new_y_min = y_min - (new_height - height) / 2
+    new_x_max = x_max + (new_width - width) / 2
+    new_y_max = y_max + (new_height - height) / 2
+
+    
+    return np.array([new_x_min, new_y_min, new_x_max, new_y_max]).reshape(-1,2)
+
 def bbox_cords(points):
     points = np.array(points)  # Преобразуем список в массив numpy
 

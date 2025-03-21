@@ -7,3 +7,4 @@ if __name__ == "__main__":
     window = MainWindow()  # Создаём экземпляр главного окна
     window.show()          # Показываем окно
     sys.exit(app.exec())   # Запускаем приложение
+        
