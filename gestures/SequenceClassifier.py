@@ -9,7 +9,7 @@ from utils.functions import *
 from gesture_list import *
 
 class SequenceClassifier:
-    def __init__(self, model_static, model_dynamic,  SEQ_LEN=100, threshold=0.6):
+    def __init__(self, model_static, model_dynamic,  SEQ_LEN=100, threshold=0.45):
         self.dynamic_class_map = inverse_dynamic_class_map
         self.static_class_map = inverse_static_class_map
         self.model_static = model_static

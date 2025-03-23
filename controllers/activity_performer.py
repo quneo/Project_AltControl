@@ -53,11 +53,19 @@ class ActivityPerformer(QtCore.QThread):
             self.current_action = None
 
         elif action_type == 'minimize_window':
-            self.window_actions.minimize_window(action.get('x'), action.get('y'))
+            self.window_actions.minimize_window()
             self.current_action = None
 
         elif action_type == 'grab_window':
-            self.window_actions.smooth_move(action.get('x'), action.get('y'), action.get('dif_x'), action.get('dif_y'))
+            self.window_actions.capture_window(action.get('x'), action.get('y'))
+            self.current_action = None
+
+        elif action_type == 'move_window':
+            self.window_actions.smooth_move(action.get('dif_x'), action.get('dif_y'))
+            self.current_action = None
+
+        elif action_type == 'release_window':
+            self.window_actions.release_window()
             self.current_action = None
 
         elif action_type == 'alt+tab':
@@ -74,5 +82,17 @@ class ActivityPerformer(QtCore.QThread):
 
         elif action_type == 'minimize_all':
             self.keyboadr_actions.minimize_all()
+            self.current_action = None
+
+        elif action_type == 'take_screenshot':
+            self.keyboadr_actions.take_screenshot()
+            self.current_action = None
+
+        elif action_type == 'copy':
+            self.keyboadr_actions.copy_action()
+            self.current_action = None
+
+        elif action_type == 'paste':
+            self.keyboadr_actions.paste_action()
             self.current_action = None
 

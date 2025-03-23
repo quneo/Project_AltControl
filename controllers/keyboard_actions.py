@@ -28,5 +28,20 @@ class KeyboardActions:
     def minimize_all():
         pyautogui.hotkey('win', 'd')
 
+    @staticmethod
+    def take_screenshot():
+        print('cheese')
+        # Имитируем нажатие клавиш Win + Shift + S
+        pyautogui.hotkey('win', 'shift', 's')
+        time.sleep(0.1)  # Небольшая задержка, чтобы инструмент успел активироваться
+
+    @staticmethod
+    def copy_action():
+        pyautogui.hotkey('ctrl', 'c')  # Имитируем нажатие Ctrl + C
+
+    @staticmethod
+    def paste_action():
+        pyautogui.hotkey('ctrl', 'v')  # Имитируем нажатие Ctrl + V
+
 
 
