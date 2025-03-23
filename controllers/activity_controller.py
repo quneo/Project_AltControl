@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath("C:/Users/vadin/Git/Project_AltControl/Project_A
 from PyQt6 import QtCore
 from utils.functions import scroll_angle, scroll_param, is_close
 from utils.unificate_cords import return_normalized_points
-
+from settings import *
 from gestures.gesture_list import *
 
 class ActivityController(QtCore.QThread):
@@ -45,32 +45,33 @@ class ActivityController(QtCore.QThread):
 
         # 1. Одиночный клик
         if inverse_class_map[self.current_gesture] == 'd_lbm+':
-            action = {'type': 'click', 'button': 'left', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
+            action = {'type': 'click', 'button': 'left', 'x': self.current_points[8][0] * SCALE_MULTIPLIER,
+                       'y': self.current_points[8][1]* SCALE_MULTIPLIER}
             animation = {'type': 'click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 2. Двойной клик
         elif inverse_class_map[self.current_gesture] == 'd_2lbm+':
-            action = {'type': 'double_click', 'button': 'left', 'x': self.current_points[8][0],
-                      'y': self.current_points[8][1]}
+            action = {'type': 'double_click', 'button': 'left', 'x': self.current_points[8][0] * SCALE_MULTIPLIER,
+                      'y': self.current_points[8][1]* SCALE_MULTIPLIER}
             animation = {'type': 'double_click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 3. Клик ПКМ
         elif inverse_class_map[self.current_gesture] == 'd_rbm+':
-            action = {'type': 'click', 'button': 'right', 'x': self.current_points[8][0],
-                      'y': self.current_points[8][1]}
+            action = {'type': 'click', 'button': 'right', 'x': self.current_points[8][0]* SCALE_MULTIPLIER,
+                      'y': self.current_points[8][1]* SCALE_MULTIPLIER}
             animation = {'type': 'right_click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 4. Зажать ЛКМ
         elif inverse_class_map[self.current_gesture] == 's_ok' and not self.lmb_pressed:
             if is_close(self.current_points_normalized[8], self.current_points_normalized[4]) and not self.lmb_pressed:
                 self.lmb_pressed = True
-                action = {'type': 'lmb_down', 'button': 'left', 'x': self.current_points[8][0],
-                          'y': self.current_points[8][1]}
+                action = {'type': 'lmb_down', 'button': 'left', 'x': self.current_points[8][0]* SCALE_MULTIPLIER,
+                          'y': self.current_points[8][1]* SCALE_MULTIPLIER}
 
         # 5. Продолжить выделение
         elif inverse_class_map[self.current_gesture] == 's_ok'  and self.lmb_pressed:
-            action = {'type': 'follow', 'button': 'left', 'x': self.current_points[8][0],
-                      'y': self.current_points[8][1]}
+            action = {'type': 'follow', 'button': 'left', 'x': self.current_points[8][0]* SCALE_MULTIPLIER,
+                      'y': self.current_points[8][1]* SCALE_MULTIPLIER}
 
         # 6. Отпустить ЛКМ
         elif inverse_class_map[self.current_gesture] != 's_ok' and inverse_class_map[self.prev_gesture] == 's_ok' and self.lmb_pressed:
@@ -86,14 +87,15 @@ class ActivityController(QtCore.QThread):
 
         # 9. Захват окна
         elif inverse_class_map[self.current_gesture] == 'd_palm_2_fist' and self.window_grabbed == False:
-            action = {'type': 'grab_window', 'x': self.current_points[0][0], 'y': self.current_points[0][1]}
+            action = {'type': 'grab_window', 'x': self.current_points[0][0]* SCALE_MULTIPLIER,
+                    'y': self.current_points[0][1]* SCALE_MULTIPLIER}
             self.window_grabbed = True
 
         # 10. Перемещение окна
         elif inverse_class_map[self.current_gesture] == 's_fist' and self.window_grabbed == True:
             dif_x = int(self.current_points[0][0] - self.prev_points[0][0])
             dif_y = int(self.current_points[0][1] - self.prev_points[0][1])
-            action = {'type': 'move_window', 'x': self.current_points[0][0], 'y': self.current_points[0][1], 'dif_x': dif_x, 'dif_y': dif_y}
+            action = {'type': 'move_window', 'x': self.current_points[0][0]* SCALE_MULTIPLIER, 'y': self.current_points[0][1]* SCALE_MULTIPLIER, 'dif_x': dif_x, 'dif_y': dif_y}
 
         # 11. Отпустить окно
         elif inverse_class_map[self.current_gesture] == 'd_fist_2_palm' and self.window_grabbed == True:

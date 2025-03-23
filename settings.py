@@ -5,3 +5,5 @@ MAXNUMHANDS = 1
 BBOX_MULTIPLIER = 1.1
 
 MAW = 3 # Moving Average Window
+
+SCALE_MULTIPLIER = 1
