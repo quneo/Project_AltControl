@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt6.QtWidgets import QWidget, QMainWindow, QApplication
 from PyQt6.QtGui import QPainter, QColor, QPen
-from PyQt6.QtCore import Qt, QPoint, QRect, QTimer
+from PyQt6.QtCore import Qt, QPoint, QRect, QTimer, QPointF
 
 from colors import Frame_color, Hand_landmark_color
 from controllers.activity_controller import ActivityController
@@ -11,6 +11,52 @@ from utils.constants import connections
 from utils.functions import bbox_cords
 from gestures.gesture_list import gestures
 from .draw_palm import draw_hand_landmarks, draw_hand_polygon, draw_hand_triangles
+import random
+import math
+
+
+particle_colors = [(31, 221, 76), (195, 86, 235), (160, 255, 138), (2, 183, 46)]
+class Particle:
+    def __init__(self, x, y, dx, dy):
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.opacity = 1.0
+        self.size = 6
+        self.color = QColor(*random.choice(particle_colors))
+
+    def update(self):
+        self.x += self.dx
+        self.y += self.dy
+        self.opacity -= 0.02
+        self.size -= 0.1
+
+    def draw(self, painter):
+        if self.opacity > 0:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(self.color)
+            painter.setOpacity(self.opacity)
+            painter.drawEllipse(QPointF(self.x, self.y), self.size, self.size)
+
+
+class Wave:
+    def __init__(self, x, y, size=20):
+        self.x = x
+        self.y = y
+        self.size = size
+        self.opacity = 1.0
+
+    def update(self):
+        self.size += 2
+        self.opacity -= 0.02
+
+    def draw(self, painter):
+        if self.opacity > 0:
+            painter.setPen(QColor(0, 255, 0, int(150 * self.opacity)))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.setOpacity(self.opacity)
+            painter.drawEllipse(QPointF(self.x, self.y), self.size, self.size)
 
 
 class ActiveFrame(QMainWindow):
@@ -29,6 +75,9 @@ class ActiveFrame(QMainWindow):
         self.init_pens_and_brushes()
 
         self.start_threads()
+
+        self.particles = []
+        self.waves = []
 
     def setup_window(self):
         """Настройка внешнего вида окна."""
@@ -83,9 +132,64 @@ class ActiveFrame(QMainWindow):
 
         self.gesture_thread.gesture_signal.connect(self.activity_controller.on_gesture_detected)
         self.activity_controller.action_signal.connect(self.activity_performer.set_action)
+        self.activity_controller.animation_signal.connect(self.animate)
 
         self.activity_controller.start()
         self.activity_performer.start()
+
+    def update_particles_waves(self):
+        self.particles = [p for p in self.particles if p.opacity > 0]
+        for wave in self.waves:
+            wave.update()
+
+        for particle in self.particles:
+            particle.update()
+
+    def animate(self, animation):
+        print(animation)
+        if animation is not None:
+            animation_type = animation.get('type')
+            x, y = animation.get('x', 0), animation.get('y', 0)  
+
+            if animation_type == 'click':  
+                #print(f"{animation_type} at {x}, {y}")
+                self.waves.append(Wave(x, y))
+
+                # Создаем частицы
+                num_points = 10
+                radius = 10
+                for i in range(num_points):
+                    particle_x = x + radius * math.cos(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_y = y + radius * math.sin(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_dx = math.cos(2 * math.pi * i / num_points)
+                    particle_dy = math.sin(2 * math.pi * i / num_points)
+                    self.particles.append(Particle(particle_x, particle_y, particle_dx, particle_dy))
+
+            if animation_type == 'double_click':  
+                print(f"{animation_type} at {x}, {y}")
+                self.waves.append(Wave(x, y))
+                self.waves.append(Wave(x, y, size=25))
+                # Создаем частицы
+                num_points = 10
+                radius = 10
+                for i in range(num_points):
+                    particle_x = x + radius * math.cos(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_y = y + radius * math.sin(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_dx = math.cos(2 * math.pi * i / num_points)
+                    particle_dy = math.sin(2 * math.pi * i / num_points)
+                    self.particles.append(Particle(particle_x, particle_y, particle_dx, particle_dy))
+
+            if animation_type == 'right_click':
+                self.waves.append(Wave(x, y))
+                # Создаем частицы
+                num_points = 10
+                radius = 45
+                for i in range(num_points):
+                    particle_x = x + radius * math.cos(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_y = y + radius * math.sin(2 * math.pi * i / num_points) + random.uniform(0, 10)
+                    particle_dx = -math.cos(2 * math.pi * i / num_points)
+                    particle_dy = -math.sin(2 * math.pi * i / num_points)
+                    self.particles.append(Particle(particle_x, particle_y, particle_dx, particle_dy))
 
     def update_tracking(self):
         self.update()
@@ -131,4 +235,12 @@ class ActiveFrame(QMainWindow):
             if self.Frame_color >= 50:
                 self.Frame_color -= 1
 
+        # Отрисовка частиц и волн
+        for particle in self.particles:
+            particle.draw(painter)
+            
+        for wave in self.waves:
+            wave.draw(painter)
+
         painter.end()
+        self.update_particles_waves()
