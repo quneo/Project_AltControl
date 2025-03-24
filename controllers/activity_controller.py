@@ -8,6 +8,7 @@ class ActivityController(QtCore.QThread):
     """Промежуточный слой, обрабатывающий входящие жесты. В зависимости от распознанного жеста определяет,
      какое действие необходимо выполнить."""
     action_signal = QtCore.pyqtSignal(dict)  # Передает действие для выполнения
+    animation_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -32,20 +33,24 @@ class ActivityController(QtCore.QThread):
     def process_gesture(self):
         """Обработка жеста и генерация действия."""
         action = {}
+        animation = {}
 
         # 1. Одиночный клик
         if self.current_gesture == 0 and self.prev_gesture == 1:
             action = {'type': 'click', 'button': 'left', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
+            animation = {'type': 'click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 2. Двойной клик
         elif self.current_gesture == 2 and self.prev_gesture == 3:
             action = {'type': 'double_click', 'button': 'left', 'x': self.current_points[8][0],
                       'y': self.current_points[8][1]}
+            animation = {'type': 'double_click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 3. Клик ПКМ
         elif self.current_gesture == 7 and self.prev_gesture == 1:
             action = {'type': 'click', 'button': 'right', 'x': self.current_points[8][0],
                       'y': self.current_points[8][1]}
+            animation = {'type': 'right_click', 'x': self.current_points[8][0], 'y': self.current_points[8][1]}
 
         # 4. Зажать ЛКМ
         elif self.current_gesture == 4 and not self.lmb_pressed:
@@ -94,4 +99,5 @@ class ActivityController(QtCore.QThread):
         # Отправка действия на выполнение
         if action:
             self.action_signal.emit(action)
+            self.animation_signal.emit(animation)
 
